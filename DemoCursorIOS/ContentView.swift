@@ -8,6 +8,8 @@
 import SwiftUI
 
 struct ContentView: View {
+    @State private var showingAirConditioner = false
+    
     var body: some View {
         NavigationView {
             ZStack {
@@ -50,6 +52,9 @@ struct ContentView: View {
         }
         .navigationBarHidden(true)
         .preferredColorScheme(.dark)
+        .fullScreenCover(isPresented: $showingAirConditioner) {
+            AirConditionerView()
+        }
     }
     
     // MARK: - ヘッダー
@@ -239,7 +244,7 @@ struct ContentView: View {
                 title: "エアコン",
                 iconColor: .white
             ) {
-                // エアコン処理
+                showingAirConditioner = true
             }
             
             // カーファインダーボタン（右）
