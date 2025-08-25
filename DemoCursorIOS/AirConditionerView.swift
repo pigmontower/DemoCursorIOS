@@ -14,12 +14,7 @@ enum AirConditionerState {
 }
 
 struct AirConditionerView: View {
-    @State private var currentState: AirConditionerState = .initial
-    @State private var remainingTime: Int = 10 // 起動時間（分）
-    @State private var countdownTime: Int = 9  // カウントダウン時間（分）
-    @State private var timer: Timer?
-    @State private var requestTimer: Timer?
-    @State private var rotationAngle: Double = 0
+    @StateObject private var viewModel = AirConditionerViewModel()
     @Environment(\.presentationMode) var presentationMode
     
     var body: some View {
@@ -35,7 +30,7 @@ struct AirConditionerView: View {
                     // メインコンテンツ
                     ScrollView {
                         VStack(spacing: 20) {
-                            switch currentState {
+                            switch viewModel.currentState {
                             case .initial:
                                 initialStateView
                             case .requesting:
@@ -50,7 +45,7 @@ struct AirConditionerView: View {
                 }
                 
                 // 通知設定エリア（リクエスト中・完了時のみ表示）
-                if currentState != .initial {
+                if viewModel.currentState != .initial {
                     VStack {
                         Spacer()
                         notificationSettingsArea
@@ -60,14 +55,8 @@ struct AirConditionerView: View {
         }
         .navigationBarHidden(true)
         .preferredColorScheme(.dark)
-        .onAppear {
-            // ローディングアニメーション開始
-            withAnimation(Animation.linear(duration: 2).repeatForever(autoreverses: false)) {
-                rotationAngle = 360
-            }
-        }
         .onDisappear {
-            stopAllTimers()
+            viewModel.onViewDisappear()
         }
     }
     
@@ -151,7 +140,7 @@ struct AirConditionerView: View {
                         .foregroundColor(Color(red: 0.557, green: 0.557, blue: 0.576)) // #8E8E93
                     
                     HStack(alignment: .bottom, spacing: 5) {
-                        Text("\(remainingTime)")
+                        Text("\(viewModel.remainingTime)")
                             .font(.system(size: 36, weight: .heavy))
                             .foregroundColor(.white)
                         Text("分間")
@@ -167,7 +156,7 @@ struct AirConditionerView: View {
             
             // 実行ボタン
             Button(action: {
-                startAirConditioner()
+                viewModel.startAirConditioner()
             }) {
                 Text("この設定で起動する")
                     .font(.system(size: 16, weight: .bold))
@@ -195,7 +184,7 @@ struct AirConditionerView: View {
                 Image(systemName: "fan.fill")
                     .font(.system(size: 60))
                     .foregroundColor(Color(red: 1, green: 0.231, blue: 0.188)) // #FF3B30
-                    .rotationEffect(.degrees(rotationAngle))
+                    .rotationEffect(.degrees(viewModel.rotationAngle))
             }
             
             // 動作中設定表示
@@ -225,7 +214,7 @@ struct AirConditionerView: View {
             
             // 停止ボタン
             Button(action: {
-                stopAirConditioner()
+                viewModel.stopAirConditioner()
             }) {
                 Text("停止する")
                     .font(.system(size: 16))
@@ -251,7 +240,7 @@ struct AirConditionerView: View {
                 
                 // カウントダウン表示
                 HStack(alignment: .bottom, spacing: 5) {
-                    Text("\(countdownTime)")
+                    Text("\(viewModel.countdownTime)")
                         .font(.system(size: 72, weight: .heavy))
                         .foregroundColor(.white)
                     Text("分")
@@ -278,7 +267,7 @@ struct AirConditionerView: View {
                         .foregroundColor(Color(red: 0.557, green: 0.557, blue: 0.576)) // #8E8E93
                     
                     HStack(alignment: .bottom, spacing: 5) {
-                        Text("\(remainingTime)")
+                        Text("\(viewModel.remainingTime)")
                             .font(.system(size: 24))
                             .foregroundColor(.white)
                         Text("分間")
@@ -294,7 +283,7 @@ struct AirConditionerView: View {
             
             // 停止ボタン
             Button(action: {
-                stopAirConditioner()
+                viewModel.stopAirConditioner()
             }) {
                 Text("停止する")
                     .font(.system(size: 16, weight: .bold))
@@ -348,57 +337,7 @@ struct AirConditionerView: View {
         .padding(.horizontal, 20)
         .padding(.bottom, 50)
     }
-    
-    // MARK: - アクション処理
-    private func startAirConditioner() {
-        // フィードバック
-        let impactFeedback = UIImpactFeedbackGenerator(style: .light)
-        impactFeedback.impactOccurred()
-        
-        // リクエスト中状態に変更
-        withAnimation(.easeInOut(duration: 0.5)) {
-            currentState = .requesting
-        }
-        
-        // 3秒後に完了状態に自動遷移
-        requestTimer = Timer.scheduledTimer(withTimeInterval: 3.0, repeats: false) { _ in
-            withAnimation(.easeInOut(duration: 0.5)) {
-                currentState = .completed
-            }
-            startCountdown()
-        }
-    }
-    
-    private func startCountdown() {
-        timer = Timer.scheduledTimer(withTimeInterval: 60.0, repeats: true) { _ in
-            if countdownTime > 0 {
-                countdownTime -= 1
-            } else {
-                stopAirConditioner()
-            }
-        }
-    }
-    
-    private func stopAirConditioner() {
-        // フィードバック
-        let impactFeedback = UIImpactFeedbackGenerator(style: .light)
-        impactFeedback.impactOccurred()
-        
-        stopAllTimers()
-        
-        // 初期状態に戻る
-        withAnimation(.easeInOut(duration: 0.5)) {
-            currentState = .initial
-            countdownTime = 9 // リセット
-        }
-    }
-    
-    private func stopAllTimers() {
-        timer?.invalidate()
-        timer = nil
-        requestTimer?.invalidate()
-        requestTimer = nil
-    }
+
 }
 
 #Preview {
