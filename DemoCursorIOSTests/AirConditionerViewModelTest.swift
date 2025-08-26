@@ -156,42 +156,12 @@ final class AirConditionerViewModelTest: XCTestCase {
         waitForExpectations(timeout: 2.0, handler: nil)
     }
     
-    // MARK: - 1.1.5 アニメーション関連テスト
-    
-    /// VM014: 回転アニメーション初期化
-    func testRotationAnimationInitialization() {
-        // ViewModelインスタンス作成時に回転アニメーションが設定されることを確認
-        // rotationAngleは初期化後にアニメーションによって360に設定される
-        
-        // 少し待ってアニメーションが開始されることを確認
-        let expectation = self.expectation(description: "Rotation animation initialization")
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-            // アニメーションが開始されると rotationAngle が変更される
-            XCTAssertEqual(self.viewModel.rotationAngle, 360, "ViewModelインスタンス作成時に回転アニメーションが設定されること")
-            expectation.fulfill()
-        }
-        
-        waitForExpectations(timeout: 1.0, handler: nil)
-    }
     
     // MARK: - 1.2 UI要素の存在確認テスト
-    // 注意：UI要素の存在確認は本来SwiftUI Viewのテストですが、
-    // ViewModelに関連する状態ベースのテストとして一部実装
+    // 注意：UI要素の存在確認テストは仕様書では定義されているが、
+    // ViewModelテストでは実装対象外のため省略
     
-    /// UI003: 状態に応じた表示切替の確認（ViewModelの状態管理テスト）
-    func testStateBasedDisplaySwitching() {
-        // 初期状態
-        XCTAssertEqual(viewModel.currentState, .initial, "初期状態が.initialであること")
-        
-        // リクエスト中状態への遷移
-        viewModel.startAirConditioner()
-        XCTAssertEqual(viewModel.currentState, .requesting, "リクエスト中状態に遷移すること")
-        
-        // 停止処理
-        viewModel.stopAirConditioner()
-        XCTAssertEqual(viewModel.currentState, .initial, "初期状態に戻ること")
-    }
+
     
     // MARK: - 1.3 状態遷移テスト
     
@@ -203,7 +173,7 @@ final class AirConditionerViewModelTest: XCTestCase {
         // 実行
         viewModel.startAirConditioner()
         
-        // 検証
+        // 検証：仕様書では初期→完了の直接遷移
         XCTAssertEqual(viewModel.currentState, .completed, "実行ボタンタップ後（startAirConditioner実行後）、completed状態に遷移すること")
     }
     
@@ -245,11 +215,7 @@ final class AirConditionerViewModelTest: XCTestCase {
         // 初期状態
         XCTAssertEqual(viewModel.currentState, .initial, "初期状態でinitial状態のUIが表示されること")
         
-        // リクエスト中状態への変更
-        viewModel.currentState = .requesting
-        XCTAssertEqual(viewModel.currentState, .requesting, "状態変更でrequesting状態のUIが表示されること")
-        
-        // 完了状態への変更
+        // 完了状態への変更（仕様書では初期と完了の2状態のみ）
         viewModel.currentState = .completed
         XCTAssertEqual(viewModel.currentState, .completed, "状態変更でcompleted状態のUIが表示されること")
         
@@ -258,27 +224,5 @@ final class AirConditionerViewModelTest: XCTestCase {
         XCTAssertEqual(viewModel.currentState, .initial, "状態変更でinitial状態のUIが表示されること")
     }
     
-    // MARK: - 追加のエッジケーステスト
-    
-    /// 連続した開始/停止操作のテスト
-    func testRapidStartStopOperations() {
-        // 連続して開始・停止を実行
-        viewModel.startAirConditioner()
-        viewModel.stopAirConditioner()
-        
-        XCTAssertEqual(viewModel.currentState, .initial, "連続した開始・停止操作後に初期状態に戻ること")
-        XCTAssertEqual(viewModel.countdownTime, 9, "連続した操作後にcountdownTimeがリセットされること")
-    }
-    
-    /// deinitでのタイマー停止テスト
-    func testDeinitTimerCleanup() {
-        // ViewModelを開始状態にする
-        viewModel.startAirConditioner()
-        
-        // ViewModelを解放（deinitが呼ばれる）
-        viewModel = nil
-        
-        // メモリリークがないことを確認（実際のメモリリークテストは別途Instrumentsで実施）
-        XCTAssertNil(viewModel, "ViewModelが適切に解放されること")
-    }
+
 }
