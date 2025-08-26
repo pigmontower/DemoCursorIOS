@@ -13,14 +13,8 @@ class AirConditionerViewModel: ObservableObject {
     @Published var currentState: AirConditionerState = .initial
     @Published var remainingTime: Int = 10 // 起動時間（分）
     @Published var countdownTime: Int = 9  // カウントダウン時間（分）
-    @Published var rotationAngle: Double = 0
     
     private var timer: Timer?
-    private var requestTimer: Timer?
-    
-    init() {
-        startRotationAnimation()
-    }
     
     deinit {
         stopAllTimers()
@@ -32,18 +26,11 @@ class AirConditionerViewModel: ObservableObject {
         let impactFeedback = UIImpactFeedbackGenerator(style: .light)
         impactFeedback.impactOccurred()
         
-        // リクエスト中状態に変更
+        // 即座に完了状態に遷移
         withAnimation(.easeInOut(duration: 0.5)) {
-            currentState = .requesting
+            currentState = .completed
         }
-        
-        // 3秒後に完了状態に自動遷移
-        requestTimer = Timer.scheduledTimer(withTimeInterval: 3.0, repeats: false) { _ in
-            withAnimation(.easeInOut(duration: 0.5)) {
-                self.currentState = .completed
-            }
-            self.startCountdown()
-        }
+        startCountdown()
     }
     
     func stopAirConditioner() {
@@ -65,16 +52,12 @@ class AirConditionerViewModel: ObservableObject {
     }
     
     // MARK: - Private Methods
-    private func startRotationAnimation() {
-        withAnimation(Animation.linear(duration: 2).repeatForever(autoreverses: false)) {
-            rotationAngle = 360
-        }
-    }
-    
     private func startCountdown() {
         timer = Timer.scheduledTimer(withTimeInterval: 60.0, repeats: true) { _ in
             if self.countdownTime > 0 {
-                self.countdownTime -= 1
+                withAnimation(.easeInOut(duration: 0.5)) {
+                    self.countdownTime -= 1
+                }
             } else {
                 self.stopAirConditioner()
             }
@@ -84,7 +67,5 @@ class AirConditionerViewModel: ObservableObject {
     private func stopAllTimers() {
         timer?.invalidate()
         timer = nil
-        requestTimer?.invalidate()
-        requestTimer = nil
     }
 }

@@ -9,7 +9,6 @@ import SwiftUI
 
 enum AirConditionerState {
     case initial    // 初期表示
-    case requesting // リクエスト中
     case completed  // 完了
 }
 
@@ -33,8 +32,6 @@ struct AirConditionerView: View {
                             switch viewModel.currentState {
                             case .initial:
                                 initialStateView
-                            case .requesting:
-                                requestingStateView
                             case .completed:
                                 completedStateView
                             }
@@ -44,8 +41,8 @@ struct AirConditionerView: View {
                     }
                 }
                 
-                // 通知設定エリア（リクエスト中・完了時のみ表示）
-                if viewModel.currentState != .initial {
+                // 通知設定エリア（完了時のみ表示）
+                if viewModel.currentState == .completed {
                     VStack {
                         Spacer()
                         notificationSettingsArea
@@ -97,8 +94,8 @@ struct AirConditionerView: View {
     
     // MARK: - 初期表示状態
     private var initialStateView: some View {
-        VStack(spacing: 30) {
-            // 設定確認メッセージ
+        VStack(spacing: 0) {
+            // 設定確認メッセージエリア
             VStack(spacing: 10) {
                 Text("下記の設定でエアコンを起動します。")
                     .font(.system(size: 16))
@@ -107,10 +104,12 @@ struct AirConditionerView: View {
                     .font(.system(size: 16))
                     .foregroundColor(.white)
             }
-            .padding(.top, 40)
+            .frame(height: 100)
+            .frame(maxWidth: .infinity)
+            .background(Color(red: 0.172, green: 0.172, blue: 0.18)) // #2C2C2E
             
             // 設定表示エリア
-            VStack(spacing: 20) {
+            VStack(spacing: 0) {
                 // 設定タイトル
                 HStack {
                     Text("エアコンの設定")
@@ -127,17 +126,24 @@ struct AirConditionerView: View {
                             .foregroundColor(Color(red: 1, green: 0.231, blue: 0.188)) // #FF3B30
                     }
                 }
+                .padding(.horizontal, 20)
+                .padding(.top, 20)
                 
                 // 区切り線
                 Rectangle()
                     .fill(Color.gray.opacity(0.3))
                     .frame(height: 1)
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 15)
                 
                 // 起動時間表示
                 VStack(spacing: 10) {
-                    Text("起動時間")
-                        .font(.system(size: 14))
-                        .foregroundColor(Color(red: 0.557, green: 0.557, blue: 0.576)) // #8E8E93
+                    HStack {
+                        Text("起動時間")
+                            .font(.system(size: 14))
+                            .foregroundColor(Color(red: 0.557, green: 0.557, blue: 0.576)) // #8E8E93
+                        Spacer()
+                    }
                     
                     HStack(alignment: .bottom, spacing: 5) {
                         Text("\(viewModel.remainingTime)")
@@ -147,96 +153,46 @@ struct AirConditionerView: View {
                             .font(.system(size: 18))
                             .foregroundColor(Color(red: 0.557, green: 0.557, blue: 0.576)) // #8E8E93
                             .padding(.bottom, 3)
+                        Spacer()
                     }
                 }
+                .padding(.horizontal, 20)
+                .padding(.bottom, 20)
             }
-            .padding(.vertical, 20)
+            .frame(height: 120)
             
             Spacer()
             
-            // 実行ボタン
-            Button(action: {
-                viewModel.startAirConditioner()
-            }) {
-                Text("この設定で起動する")
-                    .font(.system(size: 16, weight: .bold))
-                    .foregroundColor(.white)
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 50)
-                    .background(Color(red: 1, green: 0.231, blue: 0.188)) // #FF3B30
-                    .clipShape(RoundedRectangle(cornerRadius: 8))
+            // 実行ボタンエリア
+            VStack {
+                Button(action: {
+                    viewModel.startAirConditioner()
+                }) {
+                    Text("この設定で起動する")
+                        .font(.system(size: 16, weight: .bold))
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 50)
+                        .background(Color(red: 1, green: 0.231, blue: 0.188)) // #FF3B30
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                }
+                .padding(.horizontal, 20)
             }
-            .padding(.bottom, 200)
+            .frame(height: 80)
+            .padding(.bottom, 20)
         }
     }
     
-    // MARK: - リクエスト中状態
-    private var requestingStateView: some View {
-        VStack(spacing: 40) {
-            // ステータス表示エリア
-            VStack(spacing: 30) {
-                Text("リクエスト中")
-                    .font(.system(size: 18))
-                    .foregroundColor(.white)
-                    .padding(.top, 60)
-                
-                // ローディングアニメーション
-                Image(systemName: "fan.fill")
-                    .font(.system(size: 60))
-                    .foregroundColor(Color(red: 1, green: 0.231, blue: 0.188)) // #FF3B30
-                    .rotationEffect(.degrees(viewModel.rotationAngle))
-            }
-            
-            // 動作中設定表示
-            VStack(spacing: 20) {
-                Text("この設定で動作中")
-                    .font(.system(size: 16))
-                    .foregroundColor(.white)
-                
-                // 区切り線
-                Rectangle()
-                    .fill(Color.gray.opacity(0.3))
-                    .frame(height: 1)
-                
-                VStack(spacing: 10) {
-                    Text("起動時間")
-                        .font(.system(size: 14))
-                        .foregroundColor(Color(red: 0.557, green: 0.557, blue: 0.576)) // #8E8E93
-                    
-                    Text("—")
-                        .font(.system(size: 24))
-                        .foregroundColor(.white)
-                }
-            }
-            .padding(.vertical, 20)
-            
-            Spacer()
-            
-            // 停止ボタン
-            Button(action: {
-                viewModel.stopAirConditioner()
-            }) {
-                Text("停止する")
-                    .font(.system(size: 16))
-                    .foregroundColor(.white)
-                    .frame(width: 250)
-                    .frame(height: 50)
-                    .background(Color(red: 0.235, green: 0.235, blue: 0.243)) // #3C3C3E
-                    .clipShape(RoundedRectangle(cornerRadius: 8))
-            }
-            .padding(.bottom, 200)
-        }
-    }
+
     
     // MARK: - 完了状態
     private var completedStateView: some View {
-        VStack(spacing: 40) {
+        VStack(spacing: 0) {
             // 完了ステータスエリア
             VStack(spacing: 20) {
                 Text("エアコン停止まで")
                     .font(.system(size: 16))
                     .foregroundColor(.white)
-                    .padding(.top, 60)
                 
                 // カウントダウン表示
                 HStack(alignment: .bottom, spacing: 5) {
@@ -249,22 +205,34 @@ struct AirConditionerView: View {
                         .padding(.bottom, 8)
                 }
             }
+            .frame(height: 150)
+            .frame(maxWidth: .infinity)
             
-            // 動作中設定表示
-            VStack(spacing: 20) {
-                Text("この設定で動作中")
-                    .font(.system(size: 16))
-                    .foregroundColor(.white)
+            // 動作中設定表示エリア
+            VStack(spacing: 0) {
+                HStack {
+                    Text("この設定で動作中")
+                        .font(.system(size: 16))
+                        .foregroundColor(.white)
+                    Spacer()
+                }
+                .padding(.horizontal, 20)
+                .padding(.top, 20)
                 
                 // 区切り線
                 Rectangle()
                     .fill(Color.gray.opacity(0.3))
                     .frame(height: 1)
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 15)
                 
                 VStack(spacing: 10) {
-                    Text("起動時間")
-                        .font(.system(size: 14))
-                        .foregroundColor(Color(red: 0.557, green: 0.557, blue: 0.576)) // #8E8E93
+                    HStack {
+                        Text("起動時間")
+                            .font(.system(size: 14))
+                            .foregroundColor(Color(red: 0.557, green: 0.557, blue: 0.576)) // #8E8E93
+                        Spacer()
+                    }
                     
                     HStack(alignment: .bottom, spacing: 5) {
                         Text("\(viewModel.remainingTime)")
@@ -274,24 +242,30 @@ struct AirConditionerView: View {
                             .font(.system(size: 16))
                             .foregroundColor(Color(red: 0.557, green: 0.557, blue: 0.576)) // #8E8E93
                             .padding(.bottom, 2)
+                        Spacer()
                     }
                 }
+                .padding(.horizontal, 20)
+                .padding(.bottom, 20)
             }
-            .padding(.vertical, 20)
+            .frame(height: 120)
             
             Spacer()
             
-            // 停止ボタン
-            Button(action: {
-                viewModel.stopAirConditioner()
-            }) {
-                Text("停止する")
-                    .font(.system(size: 16, weight: .bold))
-                    .foregroundColor(.white)
-                    .frame(width: 250)
-                    .frame(height: 50)
-                    .background(Color(red: 1, green: 0.231, blue: 0.188)) // #FF3B30
-                    .clipShape(RoundedRectangle(cornerRadius: 8))
+            // 停止ボタンエリア
+            VStack {
+                Button(action: {
+                    viewModel.stopAirConditioner()
+                }) {
+                    Text("停止する")
+                        .font(.system(size: 16))
+                        .foregroundColor(.white)
+                        .frame(height: 50)
+                        .frame(maxWidth: .infinity)
+                        .background(Color(red: 1, green: 0.231, blue: 0.188)) // #FF3B30
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                }
+                .frame(width: UIScreen.main.bounds.width * 0.7) // 幅70%
             }
             .padding(.bottom, 200)
         }
