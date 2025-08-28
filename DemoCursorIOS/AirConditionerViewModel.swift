@@ -1,0 +1,71 @@
+//
+//  AirConditionerViewModel.swift
+//  DemoCursorIOS
+//
+//  Created by 山本真寛 on 2025/08/24.
+//
+
+import SwiftUI
+import Foundation
+
+// MARK: - ViewModel
+class AirConditionerViewModel: ObservableObject {
+    @Published var currentState: AirConditionerState = .initial
+    @Published var remainingTime: Int = 10 // 起動時間（分）
+    @Published var countdownTime: Int = 9  // カウントダウン時間（分）
+    
+    private var timer: Timer?
+    
+    deinit {
+        stopAllTimers()
+    }
+    
+    // MARK: - Public Methods
+    func startAirConditioner() {
+        // フィードバック
+        let impactFeedback = UIImpactFeedbackGenerator(style: .light)
+        impactFeedback.impactOccurred()
+        
+        // 即座に完了状態に遷移
+        withAnimation(.easeInOut(duration: 0.5)) {
+            currentState = .completed
+        }
+        startCountdown()
+    }
+    
+    func stopAirConditioner() {
+        // フィードバック
+        let impactFeedback = UIImpactFeedbackGenerator(style: .light)
+        impactFeedback.impactOccurred()
+        
+        stopAllTimers()
+        
+        // 初期状態に戻る
+        withAnimation(.easeInOut(duration: 0.5)) {
+            currentState = .initial
+            countdownTime = 9 // リセット
+        }
+    }
+    
+    func onViewDisappear() {
+        stopAllTimers()
+    }
+    
+    // MARK: - Private Methods
+    private func startCountdown() {
+        timer = Timer.scheduledTimer(withTimeInterval: 60.0, repeats: true) { _ in
+            if self.countdownTime > 0 {
+                withAnimation(.easeInOut(duration: 0.5)) {
+                    self.countdownTime -= 1
+                }
+            } else {
+                self.stopAirConditioner()
+            }
+        }
+    }
+    
+    private func stopAllTimers() {
+        timer?.invalidate()
+        timer = nil
+    }
+}
