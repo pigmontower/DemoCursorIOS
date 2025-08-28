@@ -72,7 +72,7 @@ final class DemoCursorIOSUITests: XCTestCase {
     /// UI008: 変更リンク表示
     @MainActor
     func testUI008_ChangeLink() throws {
-        XCTAssertTrue(app.staticTexts["変更する"].exists, "リンクが表示されている")
+        XCTAssertTrue(app.buttons["変更する"].exists, "リンクが表示されている")
     }
     
     /// UI009: 起動時間ラベル表示
