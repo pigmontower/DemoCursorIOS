@@ -156,8 +156,7 @@ final class DemoCursorIOSUITests: XCTestCase {
     @MainActor
     func testUI020_SettingIcon() throws {
         startAirConditionerAndWait()
-        let settingIcon = app.buttons.containing(NSPredicate(format: "label CONTAINS 'gearshape'")).firstMatch
-        XCTAssertTrue(settingIcon.exists, "アイコンが表示されている")
+        XCTAssertTrue(app.buttons["notificationSettingsButton"].exists, "アイコンが表示されている")
     }
     
     /// UI021: 設定ボタンテキスト表示
@@ -204,15 +203,13 @@ final class DemoCursorIOSUITests: XCTestCase {
     /// 戻るボタンの出現を待機
     @discardableResult
     private func waitForBackButton(timeout: TimeInterval = 5) -> Bool {
-        let backButton = app.buttons.matching(NSPredicate(format: "label CONTAINS 'chevron.left'")).firstMatch
-        return backButton.waitForExistence(timeout: timeout)
+        return app.buttons["backButton"].waitForExistence(timeout: timeout)
     }
     
     /// ヘルプボタンの出現を待機
     @discardableResult
     private func waitForHelpButton(timeout: TimeInterval = 5) -> Bool {
-        let helpButton = app.buttons.matching(NSPredicate(format: "label CONTAINS 'questionmark.circle'")).firstMatch
-        return helpButton.waitForExistence(timeout: timeout)
+        return app.buttons["helpButton"].waitForExistence(timeout: timeout)
     }
     
     /// 起動ボタンの出現を待機

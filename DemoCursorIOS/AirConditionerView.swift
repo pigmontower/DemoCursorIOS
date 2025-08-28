@@ -68,6 +68,8 @@ struct AirConditionerView: View {
                     .foregroundColor(.white)
                     .font(.title2)
             }
+            .accessibilityIdentifier("backButton")
+            .accessibilityLabel("前の画面に戻るボタン")
             
             Spacer()
             
@@ -86,6 +88,8 @@ struct AirConditionerView: View {
                     .foregroundColor(.white)
                     .font(.title2)
             }
+            .accessibilityIdentifier("helpButton")
+            .accessibilityLabel("ヘルプボタン。アプリの使い方を確認できます")
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 15)
@@ -303,6 +307,8 @@ struct AirConditionerView: View {
                 .padding(.vertical, 15)
                 .background(Color.clear)
             }
+            .accessibilityIdentifier("notificationSettingsButton")
+            .accessibilityLabel("通知設定ボタン。アプリの通知設定を変更できます")
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 20)
