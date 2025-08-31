@@ -8,6 +8,8 @@
 import SwiftUI
 
 struct ContentView: View {
+    @State private var showingAirConditioner = false
+    
     var body: some View {
         GeometryReader { geometry in
             ScrollView {
@@ -25,7 +27,7 @@ struct ContentView: View {
                     NotificationSection()
                     
                     // アクションボタンセクション
-                    ActionButtonsSection()
+                    ActionButtonsSection(showingAirConditioner: $showingAirConditioner)
                     
                     // フッターセクション
                     FooterSection()
@@ -33,6 +35,9 @@ struct ContentView: View {
             }
             .background(Color(hex: 0x1C1C1E))
             .ignoresSafeArea(.all, edges: .top)
+            .sheet(isPresented: $showingAirConditioner) {
+                AirConditionerView()
+            }
         }
     }
 }
@@ -210,6 +215,8 @@ struct NotificationSection: View {
 
 // MARK: - アクションボタンセクション
 struct ActionButtonsSection: View {
+    @Binding var showingAirConditioner: Bool
+    
     var body: some View {
         VStack(spacing: 16) {
             HStack(spacing: 16) {
@@ -227,7 +234,7 @@ struct ActionButtonsSection: View {
                     icon: "wind",
                     label: "エアコン",
                     action: {
-                        // エアコン制御画面へ遷移
+                        showingAirConditioner = true
                     }
                 )
                 
