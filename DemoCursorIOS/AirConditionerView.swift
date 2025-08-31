@@ -8,19 +8,9 @@
 import SwiftUI
 import UIKit
 
-// MARK: - エアコン画面の状態
-enum AirConditionerState {
-    case initial      // 初期表示
-    case requesting   // リクエスト中
-    case completed    // 完了
-}
-
 // MARK: - エアコン画面メインView
 struct AirConditionerView: View {
-    @State private var currentState: AirConditionerState = .initial
-    @State private var remainingTime: Int = 10 // 分
-    @State private var isTimerActive = false
-    @State private var timer: Timer?
+    @StateObject private var viewModel = AirConditionerViewModel()
     @Environment(\.presentationMode) var presentationMode
     
     var body: some View {
@@ -35,33 +25,20 @@ struct AirConditionerView: View {
                     headerView
                     
                     // メインコンテンツ
-                    switch currentState {
+                    switch viewModel.currentState {
                     case .initial:
                         InitialStateView(
                             onStartButtonTapped: {
-                                withAnimation(.easeInOut(duration: 0.3)) {
-                                    currentState = .requesting
-                                }
-                                // 3-5秒後に完了状態に遷移
-                                DispatchQueue.main.asyncAfter(deadline: .now() + 4) {
-                                    withAnimation(.easeInOut(duration: 0.3)) {
-                                        currentState = .completed
-                                        startTimer()
-                                    }
-                                }
+                                viewModel.startAirConditioner()
                             }
                         )
                     case .requesting:
                         RequestingStateView()
                     case .completed:
                         CompletedStateView(
-                            remainingTime: remainingTime,
+                            remainingTime: viewModel.remainingTime,
                             onStopButtonTapped: {
-                                stopTimer()
-                                withAnimation(.easeInOut(duration: 0.3)) {
-                                    currentState = .initial
-                                    remainingTime = 10
-                                }
+                                viewModel.stopAirConditioner()
                             }
                         )
                     }
@@ -72,7 +49,7 @@ struct AirConditionerView: View {
         }
         .navigationViewStyle(StackNavigationViewStyle())
         .onDisappear {
-            onDisappear()
+            viewModel.onDisappear()
         }
     }
     
@@ -98,7 +75,7 @@ struct AirConditionerView: View {
             Spacer()
             
             // ヘルプボタン（リクエスト中は非表示）
-            if currentState != .requesting {
+            if viewModel.currentState != .requesting {
                 Button(action: {
                     // ヘルプ画面表示
                 }) {
@@ -118,35 +95,7 @@ struct AirConditionerView: View {
         .background(Color(hex: 0x1a1a2e))
     }
     
-    // MARK: - タイマー機能
-    private func startTimer() {
-        isTimerActive = true
-        timer = Timer.scheduledTimer(withTimeInterval: 60.0, repeats: true) { _ in
-            if remainingTime > 0 && isTimerActive {
-                remainingTime -= 1
-            } else {
-                stopTimer()
-                if remainingTime <= 0 {
-                    // 自動停止
-                    withAnimation(.easeInOut(duration: 0.3)) {
-                        currentState = .initial
-                        remainingTime = 10
-                    }
-                }
-            }
-        }
-    }
-    
-    private func stopTimer() {
-        isTimerActive = false
-        timer?.invalidate()
-        timer = nil
-    }
-    
-    // ビューが消える時にタイマーを停止
-    private func onDisappear() {
-        stopTimer()
-    }
+
 }
 
 // MARK: - 初期表示画面
